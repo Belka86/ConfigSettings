@@ -11,7 +11,7 @@ namespace ConfigSettings.Patch
   /// <summary>
   /// Парсер файла настроек.
   /// </summary>
-  public class ConfigSettingsParser
+  public class ConfigSettingsParser : IConfigSettingsParser
   {
     #region Поля и свойства
 
