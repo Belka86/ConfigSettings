@@ -92,7 +92,7 @@ namespace ConfigSettings.Tests
     public void WhenSetEmptyBlockEnabled()
     {
       var configSettingsPath = this.CreateSettings(@"  
-  <block name=""ORIGIN_TRUE_BLOCK"" enabled=""true""/>
+  <block name=""ORIGIN_TRUE_BLOCK"" enabled=""True""/>
   <block name=""ORIGIN_FALSE_BLOCK"" enabled=""false""/>
   <block name=""ORIGIN_NULL_BLOCK""/>
 ");
@@ -103,11 +103,11 @@ namespace ConfigSettings.Tests
       getter.Save();
       var content = this.GetConfigSettings(configSettingsPath);
       content.Should().Be(@"
-  <block name=""ORIGIN_TRUE_BLOCK"" enabled=""True""></block>
-  <block name=""ORIGIN_FALSE_BLOCK"" enabled=""False""></block>
+  <block name=""ORIGIN_TRUE_BLOCK"" enabled=""true""></block>
+  <block name=""ORIGIN_FALSE_BLOCK"" enabled=""false""></block>
   <block name=""ORIGIN_NULL_BLOCK""></block>
-  <block name=""TEST_TRUE_BLOCK"" enabled=""True""></block>
-  <block name=""TEST_FALSE_BLOCK"" enabled=""False""></block>
+  <block name=""TEST_TRUE_BLOCK"" enabled=""true""></block>
+  <block name=""TEST_FALSE_BLOCK"" enabled=""false""></block>
   <block name=""TEST_NULL_BLOCK""></block>
 ");
     }
@@ -184,7 +184,7 @@ namespace ConfigSettings.Tests
     <repository folderName=""base"" solutionType=""Base"" url="""" />
     <repository folderName=""work"" solutionType=""Work"" url="""" />
   </block>
-  <block name=""TEST_TRUE_BLOCK"" enabled=""True"">
+  <block name=""TEST_TRUE_BLOCK"" enabled=""true"">
     <testRepository folderName=""base"" solutionType=""Base"" url="""" />
     <testRepository folderName=""work"" solutionType=""Work"" url="""" />
   </block>

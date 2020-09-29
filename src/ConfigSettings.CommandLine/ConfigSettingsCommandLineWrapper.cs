@@ -25,7 +25,7 @@ namespace ConfigSettings.CommandLine
 
     public int GetAllImports(string settingsFilePath)
     {
-      this.LogResult(CreateParser(settingsFilePath).GetAllImports());
+      this.LogResult(CreateParser(settingsFilePath).GetAllImportsExceptRoot());
       return 0;
     }
 

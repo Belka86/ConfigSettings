@@ -61,7 +61,7 @@ namespace ConfigSettings.Tests
     public void WhenSaveVariablesInSingleFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetVariableValue("testVariableName", "testVariableValue");
+      parser.AddOrUpdateVariable(parser.RootSettingsFilePath, "testVariableName", "testVariableValue");
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should()
@@ -74,7 +74,7 @@ namespace ConfigSettings.Tests
     public void WhenSaveMetaVariableInSingleFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetMetaVariableValue("testMetaVariableName", "testVariableValue");
+      parser.AddOrUpdateMetaVariable(parser.RootSettingsFilePath, "testMetaVariableName", "testVariableValue");
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should()
@@ -87,7 +87,7 @@ namespace ConfigSettings.Tests
     public void WhenSaveBlockInSingleFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetBlockValue("testBlockName", null, @"  <tenant name=""alpha"" db=""alpha_db"" />
+      parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "testBlockName", null, @"  <tenant name=""alpha"" db=""alpha_db"" />
     <tenant name=""beta"" user=""alpha_user"" />");
       parser.Save();
 
@@ -104,7 +104,7 @@ namespace ConfigSettings.Tests
     public void WhenSaveImportFromInSingleFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetImportFrom(@"test\file\path");
+      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path");
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should()
@@ -117,7 +117,7 @@ namespace ConfigSettings.Tests
     public void TestHasImportFromExistedFile()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetImportFrom(@"test\file\path");
+      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path");
       parser.HasImportFrom("path").Should().BeTrue();
       parser.HasImportFrom(@"test\file\path").Should().BeTrue();
       parser.HasImportFrom("path1").Should().BeFalse();
@@ -157,12 +157,12 @@ namespace ConfigSettings.Tests
         new TestTenant { Name = "t1"},
         new TestTenant {Name = "t2"}
       };
-      parser.SetBlockValue("testBlockName", true, tenants);
+      parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "testBlockName", true, tenants);
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
-  <block name=""testBlockName"" enabled=""True"">
+  <block name=""testBlockName"" enabled=""true"">
     <TestTenant Name=""t1"" />
     <TestTenant Name=""t2"" />
   </block>
@@ -178,12 +178,12 @@ namespace ConfigSettings.Tests
         new TestTenantWithCustomRootElementName { Name = "t1"},
         new TestTenantWithCustomRootElementName {Name = "t2"}
       };
-      parser.SetBlockValue("testBlockName", true, tenants);
+      parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "testBlockName", true, tenants);
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should()
         .Be(@"
-  <block name=""testBlockName"" enabled=""True"">
+  <block name=""testBlockName"" enabled=""true"">
     <test_custom_root custom_name=""t1"" />
     <test_custom_root custom_name=""t2"" />
   </block>
@@ -224,11 +224,11 @@ namespace ConfigSettings.Tests
         },
       };
 
-      parser.SetBlockValue("tenantGroups", true, tenantGroups);
+      parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "tenantGroups", true, tenantGroups);
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
-  <block name=""tenantGroups"" enabled=""True"">
+  <block name=""tenantGroups"" enabled=""true"">
     <ArrayOfTestTenant>
       <TestTenant Name=""a1"" />
       <TestTenant Name=""a2"" />
@@ -254,11 +254,11 @@ namespace ConfigSettings.Tests
 
       var nestedTenantList = new List<TestNestedTenants> { new TestNestedTenants { Tenants = tenantList } };
 
-      parser.SetBlockValue("nestedTenantGroups", true, nestedTenantList);
+      parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "nestedTenantGroups", true, nestedTenantList);
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
-  <block name=""nestedTenantGroups"" enabled=""True"">
+  <block name=""nestedTenantGroups"" enabled=""true"">
     <TestNestedTenants>
       <Tenants>
         <TestTenant Name=""a1"" />
@@ -279,7 +279,7 @@ namespace ConfigSettings.Tests
       var db1 = new TestPlugin();
       db1.Attributes.Add("name", "name_value");
 
-      parser.SetBlockValue("TestPluginSettings", true, new List<TestPlugin>
+      parser.AddOrUpdateBlock(parser.RootSettingsFilePath, "TestPluginSettings", true, new List<TestPlugin>
       {
         da1,
         db1
@@ -287,7 +287,7 @@ namespace ConfigSettings.Tests
       parser.Save();
 
       this.GetConfigSettings(this.TempConfigFilePath).Should().Be(@"
-  <block name=""TestPluginSettings"" enabled=""True"">
+  <block name=""TestPluginSettings"" enabled=""true"">
     <TestPlugin id=""id_value"" />
     <TestPlugin name=""name_value"" />
   </block>
@@ -325,15 +325,15 @@ namespace ConfigSettings.Tests
     public void TestGetAllImports()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetImportFrom(@"test\file\path");
-      parser.SetImportFrom(@"test\file\path2");
+      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path");
+      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path2");
 
-      var imports = parser.GetAllImports();
+      var imports = parser.GetAllImportsExceptRoot();
 
       imports.Should().HaveCount(2);
-      imports.All(file => Path.IsPathRooted(file)).Should().BeTrue();
-      imports.Should().Contain(Path.Combine(this.tempPath, @"test\file\path"));
-      imports.Should().Contain(Path.Combine(this.tempPath, @"test\file\path2"));
+      imports.All(Path.IsPathRooted).Should().BeTrue();
+      imports[0].Should().EndWith(@"test\file\path");
+      imports[1].Should().EndWith(@"test\file\path2");
     }
 
     [Test]
@@ -341,34 +341,37 @@ namespace ConfigSettings.Tests
     {
       var import1 = this.CreateSettings("");
       var import2 = this.CreateSettings("");
-      var import3 = this.CreateSettings($@"<import from=""{import1}"" /><import from=""{Path.GetFileName(import2)}"" />");
-      var root = this.CreateSettings($@"<import from=""{import3}"" />");
+      var import3 = this.CreateSettings($@"
+<import from=""{import1}"" />
+<import from=""{Path.GetFileName(import2)}"" />");
+      var root = this.CreateSettings($@"
+<import from=""{import3}"" />");
       var parser = new ConfigSettingsParser(root);
 
-      var imports = parser.GetAllImports();
+      var imports = parser.GetAllImportsExceptRoot();
 
       imports.Should().HaveCount(3);
-      imports.All(file => Path.IsPathRooted(file)).Should().BeTrue();
-      imports.Should().Contain(import1);
-      imports.Should().Contain(import2);
-      imports.Should().Contain(import3);
+      imports.All(Path.IsPathRooted).Should().BeTrue();
+      imports[0].Should().Be(import1);
+      imports[1].Should().Be(import2);
+      imports[2].Should().Be(import3);
     }
 
     [Test]
     public void TestRemoveImportFrom()
     {
       var parser = new ConfigSettingsParser(this.TempConfigFilePath);
-      parser.SetImportFrom(@"test\file\path");
-      parser.SetImportFrom(@"test\file\path2");
+      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path");
+      parser.AddOrUpdateImortFrom(parser.RootSettingsFilePath, @"test\file\path2");
 
-      var imports = parser.GetAllImports();
+      var imports = parser.GetAllImportsExceptRoot();
       imports.Should().HaveCount(2);
-      parser.RemoveImportFrom(@"test\file\path");
-      parser.RemoveImportFrom(@"test\file\path3");
-      parser.GetAllImports().Should().HaveCount(1);
+      parser.TryRemoveImportFrom(@"test\file\path");
+      parser.TryRemoveImportFrom(@"test\file\path3");
+      parser.GetAllImportsExceptRoot().Should().HaveCount(1);
       
-      parser.RemoveImportFrom(imports.FirstOrDefault(i => i.EndsWith(@"\path2")));
-      parser.GetAllImports().Should().HaveCount(0);
+      parser.TryRemoveImportFrom(imports.FirstOrDefault(i => i.EndsWith(@"\path2")));
+      parser.GetAllImportsExceptRoot().Should().HaveCount(0);
     }
 
     public string GetConfigSettings(string configPath)
